@@ -19,7 +19,7 @@ def getURLForBranch(branch):
 
 
 
-def forceBuild(branch, reason, tests=None):
+def forceBuild(branch, reason, tests=None, reactor=None):
     """
     Force a build of a given branch.
 
@@ -43,6 +43,6 @@ def forceBuild(branch, reason, tests=None):
     url = "http://buildbot.twistedmatrix.com/builders/_all/forceall"
     url = url + '?' + '&'.join([k + '=' + urllib.quote(v) for (k, v) in args])
     headers = {'user-agent': [USER_AGENT]}
-    d = treq.get(url, headers)
+    d = treq.get(url, headers, reactor=reactor)
     d.addCallback(lambda _: getURLForBranch(branch))
     return d

@@ -7,34 +7,23 @@ a particular branch.
 
 import os, sys, pwd
 
-import twisted
-from twisted.internet import reactor
+from twisted.internet.task import react
 from twisted.python import log
 from twisted_tools import buildbot
 
-VERSION = "0.1"
-
-USER_AGENT = (
-    "force-builds.py/%(version)s (%(name)s; %(platform)s) Twisted/%(twisted)s "
-    "Python/%(python)s" % dict(
-        version=VERSION, name=os.name, platform=sys.platform,
-        twisted=twisted.__version__, python=hex(sys.hexversion)))
-
-def main():
-    if len(sys.argv) == 3:
-        branch, comments = sys.argv[1:]
+def main(reactor, *args):
+    if len(args) == 2:
+        branch, comments = args
         tests = None
-    elif len(sys.argv) == 4:
-        branch, comments, tests = sys.argv[1:]
+    elif len(args) == 3:
+        branch, comments, tests = args
     else:
         raise SystemExit("Usage: %s <branch> <comments> [test-case-name]" % (sys.argv[0],))
-
-    log.startLogging(sys.stdout)
 
     reason = '%s: %s' % (pwd.getpwuid(os.getuid())[0], comments)
 
     print 'Forcing...'
-    d = buildbot.forceBuild(branch, reason, tests)
+    d = buildbot.forceBuild(branch, reason, tests, reactor=reactor)
 
     def forced(url):
         print 'Forced.'
@@ -42,9 +31,10 @@ def main():
 
     d.addCallback(forced)
     d.addErrback(log.err, "Build force failure")
-    d.addCallback(lambda ign: reactor.stop())
-    reactor.run()
+    return d
 
 
 if __name__ == '__main__':
-    main()
+    log.startLogging(sys.stdout)
+
+    react(main, sys.argv[1:])
