@@ -9,7 +9,7 @@ setup(
     author='Tom Prince',
     author_email='tom.prince@ualberta.net',
     packages=['twisted_tools', 'twisted_tools.scripts', 'twisted_tools.test'],
-    scripts=['bin/force-build'],
+    scripts=['bin/force-build', 'bin/mkbranch'],
     install_requires=[
         'twisted >= 13.0.0',
         'treq',
