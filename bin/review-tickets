@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+import sys
+from twisted.internet.task import react
+from twisted_tools.scripts.reviewtickets import main
+react(main, sys.argv)
