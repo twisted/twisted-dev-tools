@@ -43,6 +43,10 @@ def forceBuild(branch, reason, tests=None, reactor=None):
     url = "http://buildbot.twistedmatrix.com/builders/_all/forceall"
     url = url + '?' + '&'.join([k + '=' + urllib.quote(v) for (k, v) in args])
     headers = {'user-agent': [USER_AGENT]}
-    d = treq.get(url, headers, reactor=reactor)
+    # We don't actually care about the result and buildbot returns a
+    # relative redirect here. Until recently (#5434) twisted didn't
+    # handle them, so avoid following the redirect to support released
+    # versions of twisted.
+    d = treq.get(url, headers, allow_redirects=False, reactor=reactor)
     d.addCallback(lambda _: getURLForBranch(branch))
     return d
