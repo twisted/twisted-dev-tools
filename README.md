@@ -10,7 +10,7 @@ Examples
 
 ```shell
 fetch-ticket <ticket-number>
-review-branches
+review-tickets
 get-attachment get <ticket-number> # Gets latest attachment from ticket
 tch-ticket works :)
 get-attachment apply <ticket-number> # Gets latest attachment from ticket, applies it to the current git reposiory, and commits it with an appropriate message.
