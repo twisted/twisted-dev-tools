@@ -3,24 +3,34 @@ Force the Twisted buildmaster to run a builds on all supported builders for
 a particular branch.
 """
 
-import os, sys, pwd
+import os, pwd
 
 from twisted.python import log
+from twisted.python import usage
 from twisted_tools import buildbot
 
-def main(reactor, *args):
-    if len(args) == 2:
-        branch, comments = args
-        tests = None
-    elif len(args) == 3:
-        branch, comments, tests = args
-    else:
-        raise SystemExit("Usage: %s <branch> <comments> [test-case-name]" % (sys.argv[0],))
+class Options(usage.Options):
+    synopsis = "force-build [options]"
 
-    reason = '%s: %s' % (pwd.getpwuid(os.getuid())[0], comments)
+    optParameters = [['branch', 'b', None, 'Branch to build'],
+                     ['tests', 't', None, 'Tests to run'],
+                     ['comments', None, None, 'Build comments'],
+                     ]
+
+
+
+
+def main(reactor, *argv):
+    config = Options()
+    config.parseOptions(argv[1:])
+
+    if config['branch'] is None:
+        raise SystemExit("Must specify a branch to build.")
+
+    reason = '%s: %s' % (pwd.getpwuid(os.getuid())[0], config['comments'])
 
     print 'Forcing...'
-    d = buildbot.forceBuild(branch, reason, tests, reactor=reactor)
+    d = buildbot.forceBuild(config['branch'], reason, config['tests'], reactor=reactor)
 
     def forced(url):
         print 'Forced.'

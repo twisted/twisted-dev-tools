@@ -11,4 +11,4 @@ from twisted.python import log
 from twisted_tools.scripts.forcebuild import main
 
 log.startLogging(sys.stdout)
-react(main, sys.argv[1:])
+react(main, sys.argv)
