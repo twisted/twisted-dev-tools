@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='twisted-dev-tools',
-    version='0.0.1',
+    version='0.0.2',
     url='https://github.com/twisted/twisted-dev-tools',
     description="Tools for twisted development",
     license='MIT',
