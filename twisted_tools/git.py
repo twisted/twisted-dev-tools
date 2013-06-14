@@ -1,5 +1,9 @@
 import os
+from twisted.internet.defer import Deferred
+from twisted.internet.endpoints import connectProtocol, ProcessEndpoint
+from twisted.internet.error import ConnectionDone
 from twisted.internet.utils import getProcessOutput, getProcessValue
+from twisted.test.proto_helpers import AccumulatingProtocol
 
 SVN_REPO = 'svn://svn.twistedmatrix.com/svn/Twisted/'
 
@@ -54,3 +58,45 @@ def getCurrentSVNBranch(path=None, reactor=None):
     d.addCallback(_getSVNPathFromGitLog)
     d.addCallback(lambda res: res[0])
     return d
+
+
+
+def applyPatch(patch, patchLevel="0", reactor=None):
+    """
+    Apply a patch to the current git repository.
+
+    @param patch: Patch to apply
+    @type patch: L{str}
+
+    @param patchLevel: Number of directries to strip from paths in patch
+    """
+    proto = AccumulatingProtocol()
+    done = Deferred()
+    proto.closedDeferred = done
+    def feedPatch(proto):
+        proto.transport.write(patch)
+        proto.transport.closeStdin()
+    connectProtocol(
+            ProcessEndpoint(reactor, "git", ("git", "apply", "--index",
+                                             "-p", patchLevel)),
+            proto).addCallback(feedPatch)
+    def eb(_):
+        # Note, we can't print why git apply failed due to https://tm.tl/#6576
+        proto.closedReason.trap(ConnectionDone)
+    done.addCallback(eb)
+    return done
+
+
+def commit(summary, body, reactor=None):
+    """
+    Commit the current state of the index.
+
+    @param summary: First line of commit message.
+    @param body: Body of commit message
+    @return: L{deferred<twisted.internet.defer.Deferred>} that fires with the output of git-commit.
+    """
+    return getProcessOutput("git", ("commit",
+        '--no-edit',
+        '-m', summary,
+        '-m', body),
+        env = os.environ)

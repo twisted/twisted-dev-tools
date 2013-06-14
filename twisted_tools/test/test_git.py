@@ -45,6 +45,7 @@ class EnsureGitRepository(TestCase):
         return d
 
 
+
 class SVNLogTests(TestCase):
     """
     Tests for L{git._getSVNPathFromGitLog}.
