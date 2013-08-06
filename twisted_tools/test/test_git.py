@@ -45,6 +45,27 @@ class EnsureGitRepository(TestCase):
         return d
 
 
+    def test_getCurrentBranch(self):
+        gitRepo = FilePath(self.mktemp())
+        gitRepo.createDirectory()
+
+        # Create a git repository
+        d = getProcessValue('git', ('init',), path=gitRepo.path)
+        def initialized(ignored):
+            gitRepo.child('foo').setContent("bar")
+            return getProcessValue(
+                'git', ('add', gitRepo.child('foo').path), path=gitRepo.path)
+        d.addCallback(initialized)
+        def added(ignored):
+            return getProcessValue(
+                'git', ('commit', '-am', 'have a revision'), path=gitRepo.path)
+        d.addCallback(added)
+        d.addCallback(lambda _: git.getCurrentBranch(gitRepo.path))
+        d.addCallback(self.assertEqual, 'master')
+        return d
+
+
+
 class SVNLogTests(TestCase):
     """
     Tests for L{git._getSVNPathFromGitLog}.

@@ -18,10 +18,16 @@ class NotASVNRevision(Exception):
 
 
 
-def ensureGitRepository(path=None, reactor=None):
+def _git(path, reactor, args):
     if path is None:
         path = os.getcwd()
-    d = getProcessValue('git', ('rev-parse', '--git-dir'), path=path, reactor=reactor)
+    d = getProcessOutput('git', args, path=path, reactor=reactor)
+    return d
+
+
+
+def ensureGitRepository(path=None, reactor=None):
+    d = _git(path, reactor, ('rev-parse', '--git-dir'))
     def convertExitCode(res):
         if res != 0:
             raise NotAGitRepository()
@@ -33,9 +39,11 @@ def ensureGitRepository(path=None, reactor=None):
     return d
 
 
+
 def _parseRemotes(output):
     if output.strip():
         return output.splitlines()[0].split()[1]
+
 
 
 def _getSVNPathFromGitLog(output):
@@ -52,11 +60,6 @@ def _getSVNPathFromGitLog(output):
     return '/' + branch, revision
 
 
-def _git(path, reactor, args):
-    if path is None:
-        path = os.getcwd()
-    d = getProcessOutput('git', args, path=path, reactor=reactor)
-    return d
 
 def getCurrentSVNBranch(path=None, reactor=None):
     """
@@ -70,4 +73,7 @@ def getCurrentSVNBranch(path=None, reactor=None):
 
 
 def getCurrentBranch(path=None, reactor=None):
-    return _git(path, reactor, ('rev-parse', '--abbrev-ref', 'HEAD'))
+    d = _git(path, reactor, ('rev-parse', '--abbrev-ref', 'HEAD'))
+    d.addCallback(lambda branch: branch.strip())
+    return d
+
