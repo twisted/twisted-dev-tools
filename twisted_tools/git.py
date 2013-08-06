@@ -52,13 +52,22 @@ def _getSVNPathFromGitLog(output):
     return '/' + branch, revision
 
 
+def _git(path, reactor, args):
+    if path is None:
+        path = os.getcwd()
+    d = getProcessOutput('git', args, path=path, reactor=reactor)
+    return d
+
 def getCurrentSVNBranch(path=None, reactor=None):
     """
     Get the svn branch corresponding to the current commit.
     """
-    if path is None:
-        path = os.getcwd()
-    d = getProcessOutput('git', ('log', '-n1', '--pretty=format:%B'), path=path, reactor=reactor)
+    d = _git(path, reactor, ('log', '-n1', '--pretty=format:%B'))
     d.addCallback(_getSVNPathFromGitLog)
     d.addCallback(lambda res: res[0])
     return d
+
+
+
+def getCurrentBranch(path=None, reactor=None):
+    return _git(path, reactor, ('rev-parse', '--abbrev-ref', 'HEAD'))

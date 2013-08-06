@@ -45,7 +45,11 @@ def main(reactor, *argv):
     try:
         origin = yield git.ensureGitRepository(reactor=reactor)
         if config['branch'] is None:
-            config['branch'] = yield git.getCurrentSVNBranch(reactor=reactor)
+            mirror = int(config.config.get(origin, b"svn_mirror", b"1"))
+            if mirror:
+                config['branch'] = yield git.getCurrentSVNBranch(reactor=reactor)
+            else:
+                config['branch'] = yield git.getCurrentBranch(reactor=reactor)
     except git.NotAGitRepository:
         raise SystemExit("Must specify a branch to build or be in a git repository.")
     except git.NotASVNRevision:
