@@ -1,5 +1,6 @@
 import os
-from twisted.internet.utils import getProcessOutput, getProcessValue
+
+from twisted.internet.utils import getProcessOutputAndValue
 
 SVN_REPO = 'svn://svn.twistedmatrix.com/svn/Twisted/'
 
@@ -21,17 +22,16 @@ class NotASVNRevision(Exception):
 def _git(path, reactor, args):
     if path is None:
         path = os.getcwd()
-    d = getProcessOutput('git', args, path=path, reactor=reactor)
-    return d
+    return getProcessOutputAndValue('git', args, path=path, reactor=reactor)
 
 
 
 def ensureGitRepository(path=None, reactor=None):
     d = _git(path, reactor, ('rev-parse', '--git-dir'))
-    def convertExitCode(res):
-        if res != 0:
+    def convertExitCode((out, err, code)):
+        if code != 0:
             raise NotAGitRepository()
-        d = getProcessOutput(b"git", (b"remote", b"-v"), path=path, reactor=reactor)
+        d = _git(path, reactor, (b"remote", b"-v"))
         d.addCallback(_parseRemotes)
         return d
 
@@ -40,7 +40,7 @@ def ensureGitRepository(path=None, reactor=None):
 
 
 
-def _parseRemotes(output):
+def _parseRemotes((output, err, code)):
     if output.strip():
         return output.splitlines()[0].split()[1]
 
@@ -74,6 +74,6 @@ def getCurrentSVNBranch(path=None, reactor=None):
 
 def getCurrentBranch(path=None, reactor=None):
     d = _git(path, reactor, ('rev-parse', '--abbrev-ref', 'HEAD'))
-    d.addCallback(lambda branch: branch.strip())
+    d.addCallback(lambda (out, err, code): out.strip())
     return d
 

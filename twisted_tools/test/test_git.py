@@ -33,10 +33,8 @@ class EnsureGitRepository(TestCase):
         When called from a git repository, L{git.ensureGitRepository} returns
         a deferred that doesn't errback.
         """
-        basedir = FilePath(self.mktemp())
-        basedir.createDirectory()
-        basedir.child('.git').setContent('blah-blah-blah')
-        gitRepo = basedir.child('git-repo')
+        gitRepo = FilePath(self.mktemp())
+        gitRepo.createDirectory()
 
         # Create a git repository
         d = getProcessValue('git', ('init', gitRepo.path))
