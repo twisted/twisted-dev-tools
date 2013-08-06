@@ -24,10 +24,18 @@ def ensureGitRepository(path=None, reactor=None):
     d = getProcessValue('git', ('rev-parse', '--git-dir'), path=path, reactor=reactor)
     def convertExitCode(res):
         if res != 0:
-            raise NotAGitRepository
+            raise NotAGitRepository()
+        d = getProcessOutput(b"git", (b"remote", b"-v"), path=path, reactor=reactor)
+        d.addCallback(_parseRemotes)
+        return d
 
     d.addCallback(convertExitCode)
     return d
+
+
+def _parseRemotes(output):
+    if output.strip():
+        return output.splitlines()[0].split()[1]
 
 
 def _getSVNPathFromGitLog(output):
