@@ -62,6 +62,7 @@ def main(reactor, *argv):
     results = config.config.get(origin, b"results", b"")
     prefix = config.config.get(origin, b"branch-prefix", b"/branches/")
     branchKey = config.config.get(origin, b"branch-key", b"branch")
+    extra = config.config.get(origin, b"extra", None)
 
     branch = config['branch']
     if not branch.startswith(prefix):
@@ -78,7 +79,11 @@ def main(reactor, *argv):
         ('revision', ''),
         ('submit', 'Force Build'),
         (branchKey, branch),
-        ('reason', reason)]
+        ('reason', reason),
+        ]
+
+    if extra:
+        args.extend(item.split(b"=", 1) for item in extra.split(b"&"))
 
     if tests is not None:
         args += [('test-case-name', tests)]
