@@ -1,16 +1,13 @@
 # Copyright (c) Twisted Matrix Laboratories.
 # See LICENSE for details.
 
-import sys, time, datetime, os
-from twisted.internet.endpoints import connectProtocol, ProcessEndpoint
-from twisted.internet.error import ConnectionDone
-from twisted.internet.defer import Deferred
-from twisted.internet.utils import getProcessOutput
+import sys, time, datetime
 from twisted.python import usage
 from twisted.internet.defer import inlineCallbacks
-from twisted.test.proto_helpers import AccumulatingProtocol
 
 from amptrac.client import connect, getRawAttachment, DEFAULT_AMP_ENDPOINT, Client
+
+from twisted_tools import git
 
 class ListOptions(usage.Options):
 
@@ -70,23 +67,10 @@ def getLastAttachment(response):
 
 @inlineCallbacks
 def applyPatch(patch, reactor, config, ticket):
-    proto = AccumulatingProtocol()
-    done = Deferred()
-    proto.closedDeferred = done
-    proto = yield connectProtocol(
-            ProcessEndpoint(reactor, "git", ("git", "apply", "--index",
-                                             "-p", config.subOptions['patch-level'])),
-            proto)
-    proto.transport.write(patch)
-    proto.transport.closeStdin()
-    yield done
-    proto.closedReason.trap(ConnectionDone)
-
-    print (yield getProcessOutput("git", ("commit",
-        '--no-edit',
-        '-m', 'Apply %(filename)s from %(author)s.' % ticket['attachments'][-1],
-        '-m', 'Refs: #%(id)d' % ticket),
-        env = os.environ))
+    yield git.applyPatch(patch, config.subOptions['patch-level'], reactor=reactor)
+    print (yield git.commit(
+        'Apply %(filename)s from %(author)s.' % ticket['attachments'][-1],
+        'Refs: #%(id)d' % ticket))
 
 
 def main(reactor, *argv):
