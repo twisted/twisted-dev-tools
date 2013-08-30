@@ -5,7 +5,7 @@ a particular branch.
 
 import os.path, pwd, urllib
 
-from ConfigParser import ConfigParser
+from ConfigParser import NoSectionError, NoOptionError, ConfigParser
 
 from twisted.python.filepath import FilePath
 from twisted.python import usage
@@ -27,7 +27,6 @@ class Options(usage.Options):
 
     def postOptions(self):
         path = FilePath(self['config'])
-        print path
         if not path.exists():
             self.config = None
         else:
@@ -37,15 +36,23 @@ class Options(usage.Options):
             self.config = config
 
 
+    def get(self, origin, key, default):
+        try:
+            return self.config.get(origin, key)
+        except (NoOptionError, NoSectionError):
+            return default
+
+
 @inlineCallbacks
 def main(reactor, *argv):
     config = Options()
     config.parseOptions(argv[1:])
 
+    origin = object()
     try:
-        origin = yield git.ensureGitRepository(reactor=reactor)
         if config['branch'] is None:
-            mirror = int(config.config.get(origin, b"svn_mirror", b"1"))
+            origin = yield git.ensureGitRepository(reactor=reactor)
+            mirror = int(config.get(origin, b"svn_mirror", b"1"))
             if mirror:
                 config['branch'] = yield git.getCurrentSVNBranch(reactor=reactor)
             else:
@@ -55,14 +62,14 @@ def main(reactor, *argv):
     except git.NotASVNRevision:
         raise SystemExit("Current commit hasn't been pushed to svn.")
 
-    url = config.config.get(origin, b"url", b"http://buildbot.twistedmatrix.com/")
-    scheduler = config.config.get(origin, b"scheduler", b"force-supported")
-    username = config.config.get(origin, b"username", b"twisted")
-    password = config.config.get(origin, b"password", b"matrix")
-    results = config.config.get(origin, b"results", b"")
-    prefix = config.config.get(origin, b"branch-prefix", b"/branches/")
-    branchKey = config.config.get(origin, b"branch-key", b"branch")
-    extra = config.config.get(origin, b"extra", None)
+    url = config.get(origin, b"url", b"http://buildbot.twistedmatrix.com/")
+    scheduler = config.get(origin, b"scheduler", b"force-supported")
+    username = config.get(origin, b"username", b"twisted")
+    password = config.get(origin, b"password", b"matrix")
+    results = config.get(origin, b"results", b"%s/%%s" % (url,))
+    prefix = config.get(origin, b"branch-prefix", b"/branches/")
+    branchKey = config.get(origin, b"branch-key", b"branch")
+    extra = config.get(origin, b"extra", None)
 
     branch = config['branch']
     if not branch.startswith(prefix):
