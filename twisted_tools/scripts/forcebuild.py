@@ -66,7 +66,7 @@ def main(reactor, *argv):
     scheduler = config.get(origin, b"scheduler", b"force-supported")
     username = config.get(origin, b"username", b"twisted")
     password = config.get(origin, b"password", b"matrix")
-    results = config.get(origin, b"results", b"%s/%%s" % (url,))
+    results = config.get(origin, b"results", b"%sboxes-supported?branch=%%s" % (url,))
     prefix = config.get(origin, b"branch-prefix", b"/branches/")
     branchKey = config.get(origin, b"branch-key", b"branch")
     extra = config.get(origin, b"extra", None)
