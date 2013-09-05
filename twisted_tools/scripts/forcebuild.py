@@ -48,10 +48,9 @@ def main(reactor, *argv):
     config = Options()
     config.parseOptions(argv[1:])
 
-    origin = object()
     try:
+        origin = yield git.ensureGitRepository(reactor=reactor)
         if config['branch'] is None:
-            origin = yield git.ensureGitRepository(reactor=reactor)
             mirror = int(config.get(origin, b"svn_mirror", b"1"))
             if mirror:
                 config['branch'] = yield git.getCurrentSVNBranch(reactor=reactor)
