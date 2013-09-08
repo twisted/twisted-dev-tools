@@ -50,16 +50,20 @@ def main(reactor, *argv):
 
     try:
         origin = yield git.ensureGitRepository(reactor=reactor)
+    except git.NotAGitRepository:
         if config['branch'] is None:
+            raise SystemExit("Must specify a branch to build or be in a git repository.")
+        origin = None
+
+    if config['branch'] is None:
+        try:
             mirror = int(config.get(origin, b"svn_mirror", b"1"))
             if mirror:
                 config['branch'] = yield git.getCurrentSVNBranch(reactor=reactor)
             else:
                 config['branch'] = yield git.getCurrentBranch(reactor=reactor)
-    except git.NotAGitRepository:
-        raise SystemExit("Must specify a branch to build or be in a git repository.")
-    except git.NotASVNRevision:
-        raise SystemExit("Current commit hasn't been pushed to svn.")
+        except git.NotASVNRevision:
+            raise SystemExit("Current commit hasn't been pushed to svn.")
 
     url = config.get(origin, b"url", b"http://buildbot.twistedmatrix.com/")
     scheduler = config.get(origin, b"scheduler", b"force-supported")
