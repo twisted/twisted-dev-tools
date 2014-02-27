@@ -51,7 +51,8 @@ def _parseRemotes((output, err, code)):
 
 
 
-def _getSVNPathFromGitLog(output):
+def _getSVNPathFromGitLog((output, err, code)):
+    print output
     svnInfoLine = output.splitlines()[-1]
     try:
         tag, path, uuid = svnInfoLine.split(' ')

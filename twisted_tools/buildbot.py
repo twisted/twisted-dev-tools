@@ -11,12 +11,35 @@ USER_AGENT = (
 
 
 
-def forceBuild(url, args, reactor=None):
+def forceBuild(
+        branch, reason,
+        url=b"http://buildbot.twistedmatrix.com/",
+        username=b'twisted', password=b'matrix',
+        scheduler='force-supported',
+        branchKey='branch',
+        tests=None, extraArgs={},
+        reactor=None):
     """
     Force a build of a given branch.
 
     @return: URL where build results can be found.
     """
+
+    args = [
+        ('username', username),
+        ('passwd', password),
+        ('forcescheduler', scheduler),
+        ('revision', ''),
+        ('submit', 'Force Build'),
+        (branchKey, branch),
+        ('reason', reason),
+        ]
+
+    if tests is not None:
+        args += [('test-case-name', tests)]
+
+    if extraArgs:
+        args += extraArgs.items()
 
     url = url + b"builders/_all/forceall"
     url = url + '?' + '&'.join([k + '=' + urllib.quote(v) for (k, v) in args])

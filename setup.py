@@ -20,6 +20,7 @@ setup(
         'twisted >= 13.0.0',
         'treq',
         'amptrac >= 0.1',
+        'PyYAML',
     ],
     zip_safe=False,
 )
