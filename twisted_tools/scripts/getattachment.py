@@ -1,6 +1,7 @@
 # Copyright (c) Twisted Matrix Laboratories.
 # See LICENSE for details.
 
+from __future__ import print_function
 import sys, time, datetime
 from twisted.python import usage
 from twisted.internet.defer import inlineCallbacks
@@ -68,7 +69,7 @@ def getLastAttachment(response):
 @inlineCallbacks
 def applyPatch(patch, reactor, config, ticket):
     yield git.applyPatch(patch, config.subOptions['patch-level'], reactor=reactor)
-    print (yield git.commit(
+    print(yield git.commit(
         'Apply %(filename)s from %(author)s.' % ticket['attachments'][-1],
         'Refs: #%(id)d' % ticket))
 
