@@ -1,5 +1,9 @@
 import os, sys
-import urllib
+try:
+    from urllib.parse import quote as urlQuote
+except ImportError:
+    from urllib import quote as urlQuote
+
 import treq
 import twisted
 
@@ -15,7 +19,7 @@ def getURLForBranch(branch):
     """
     Get URL for build results corresponding to a branch.
     """
-    return 'http://buildbot.twistedmatrix.com/boxes-supported?branch=%s' % (urllib.quote(branch),)
+    return 'http://buildbot.twistedmatrix.com/boxes-supported?branch=%s' % (urlQuote(branch),)
 
 
 
@@ -41,7 +45,7 @@ def forceBuild(branch, reason, tests=None, reactor=None):
         args += [('test-case-name', tests)]
 
     url = "http://buildbot.twistedmatrix.com/builders/_all/forceall"
-    url = url + '?' + '&'.join([k + '=' + urllib.quote(v) for (k, v) in args])
+    url = url + '?' + '&'.join([k + '=' + urlQuote(v) for (k, v) in args])
     headers = {'user-agent': [USER_AGENT]}
     # We don't actually care about the result and buildbot returns a
     # relative redirect here. Until recently (#5434) twisted didn't
