@@ -11,7 +11,6 @@ setup(
     packages=['twisted_tools', 'twisted_tools.scripts', 'twisted_tools.test'],
     scripts=[
         'bin/force-build',
-        'bin/make-branch',
         'bin/fetch-ticket',
         'bin/review-tickets',
         'bin/get-attachment',
