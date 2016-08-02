@@ -3,6 +3,7 @@ Force the Twisted buildmaster to run a builds on all supported builders for
 a particular branch.
 """
 
+from __future__ import print_function
 import os, pwd
 
 from twisted.python import usage
@@ -37,7 +38,7 @@ def main(reactor, *argv):
 
     reason = '%s: %s' % (pwd.getpwuid(os.getuid())[0], config['comments'])
 
-    print 'Forcing...'
+    print('Forcing...')
     url = yield buildbot.forceBuild(config['branch'], reason, config['tests'], reactor=reactor)
-    print 'Forced.'
-    print 'See %s for results' % (url,)
+    print('Forced.')
+    print('See %s for results' % (url,))
